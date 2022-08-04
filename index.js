@@ -1,15 +1,20 @@
 "use strict";
 
+const get = require("lodash.get");
+const set = require("lodash.set");
+
 const sanitize = require("./lib/sanitize");
 
 function middleware(options = {}) {
-  return (req, res, next) => {
-    ["body", "params", "headers", "query"].forEach((k) => {
-      if (req[k]) {
-        req[k] = sanitize(req[k], options);
+  return async (ctx, next) => {
+    ["body", "headers", "query", "request.body"].forEach((path) => {
+      const data = get(ctx, path, null);
+      if (data) {
+        set(ctx, path, sanitize(data, options));
       }
     });
-    next();
+
+    await next();
   };
 }
 
